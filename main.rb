@@ -220,6 +220,23 @@ if __FILE__ == $0
           curr_block = next_block
           next_block = Block.new([:I, :J, :L, :O, :S, :Z,:T].sample, 0)
           render_next_block(win, next_block)
+          unless can_move_to?(curr_block, x, y)
+            win.setpos(8, 2)
+            win << "                   "
+            win.setpos(9, 2)
+            win << "     GAME OVER     "
+            win.setpos(10, 2)
+            win << "                   "
+            win.setpos(11, 0)
+            win << "   PRESS ENTER TO EXIT  "
+            win.setpos(12, 2)
+            win << "                   "
+            loop {
+              c = win.getch
+              break if c == 10 || c == 13
+            }
+            break
+          end
         end
         start_cycle = now
       end

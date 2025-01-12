@@ -6,6 +6,12 @@ init_screen
 start_color
 
 init_pair(1, 1, 0)
+init_pair(2, 2, 0)
+init_pair(3, 3, 0)
+init_pair(4, 4, 0)
+init_pair(5, 5, 0)
+init_pair(6, 6, 0)
+init_pair(7, 7, 0)
 curs_set(0)
 noecho
 
@@ -46,14 +52,12 @@ def can_move_to?(block, x, y)
   return true
 end
 
-def squarise(row)
-  row.split('').map { |elem|
-    if elem == ' '
-      '  '
-    else
-      '[]'
-    end
-  }.join
+def square(cell)
+  if cell == ' '
+    '  '
+  else
+    '[]'
+  end
 end
 
 def rotate_r(block, x, y)
@@ -67,7 +71,7 @@ end
 def delete_full_rows
   to_delete = []
   BOARD.each_with_index { |row, idx|
-    if row.all? { |cell| cell == '*' }
+    if row.all? { |cell| cell != ' ' }
       to_delete.push idx
     end
   }
@@ -82,13 +86,13 @@ end
 
 class Block
   MAPPING = {
-    I: [["****", 0, 1], ["*\n*\n*\n*", 2, 0], ["****", 0, 2], ["*\n*\n*\n*", 1, 0]],
-    J: [["*\n***", 1, 1], ["**\n*\n*", 2, 0], ["***\n  *", 1, 1], [" *\n *\n**", 2, 0]],
-    L: [["***\n*", 1, 1], ["**\n *\n *", 2, 0], ["  *\n***", 1, 1], ["*\n*\n**", 2, 0]],
-    O: [["**\n**", 1, 1]],
-    T: [["***\n *", 1, 1], ["*\n**\n*", 2, 0], [" * \n***", 1, 1], [" *\n**\n *", 2, 0]],
-    S: [[" **\n**", 1, 1], ["*\n**\n *", 2, 0]],
-    Z: [["**\n **", 1, 1], [" *\n**\n*", 2, 0]]
+    I: [["6666", 0, 1], ["6\n6\n6\n6", 2, 0], ["6666", 0, 2], ["6\n6\n6\n6", 1, 0]],
+    J: [["4\n444", 1, 1], ["44\n4\n4", 2, 0], ["444\n  4", 1, 1], [" 4\n 4\n44", 2, 0]],
+    L: [["777\n7", 1, 1], ["77\n 7\n 7", 2, 0], ["  7\n777", 1, 1], ["7\n7\n77", 2, 0]],
+    O: [["33\n33", 1, 1]],
+    T: [["555\n 5", 1, 1], ["5\n55\n5", 2, 0], [" 5 \n555", 1, 1], [" 5\n55\n 5", 2, 0]],
+    S: [[" 22\n22", 1, 1], ["2\n22\n 2", 2, 0]],
+    Z: [["11\n 11", 1, 1], [" 1\n11\n1", 2, 0]]
   }
 
   def initialize(shape, rotation = 0)
@@ -130,6 +134,28 @@ class Block
   end
 end
 
+def render_squares(win, row)
+  row.split('').each { |ch|
+    win.attron(color_pair(ch.to_i)) { win << square(ch) }
+  }
+end
+
+def render_next_block(win, block)
+  x = 15
+  y = 2
+
+  (0..3).each { |i|
+    win.setpos(y + i, x * 2)
+    win << "                "
+  }
+
+  block.rows.each_with_index { |row, i|
+    win.setpos(y + i + block.y, (x + 1 + block.x) * 2)
+    render_squares(win, row)
+  }
+  win.refresh
+end
+
 HEIGHT = 22
 
 if __FILE__ == $0
@@ -142,18 +168,20 @@ if __FILE__ == $0
     blocks_per_level = 15
     start_cycle = Process.clock_gettime(Process::CLOCK_MONOTONIC)
     curr_block = Block.new([:I, :J, :L, :O, :S, :Z,:T].sample, 0)
+    next_block = Block.new([:I, :J, :L, :O, :S, :Z,:T].sample, 0)
+    render_next_block(win, next_block)
     loop do
       cb_rows = curr_block.rows
       (0..HEIGHT-1).each { |h|
         win.setpos(h, 0)
         win << "##"
-        win << squarise(BOARD[h].join)
+        render_squares(win, BOARD[h].join)
         win.setpos(h, 11*2)
         win << "##"
         cb_rows.each_with_index { |cbr, i|
           offset = (cbr.size - cbr.lstrip.size)
           win.setpos(y+i + curr_block.y, (x + 1 + curr_block.x + offset) * 2)
-          win.attron(color_pair(1)) { win << squarise(cbr.strip) }
+          render_squares(win, cbr.strip)
         }
         win.refresh
       }
@@ -189,7 +217,9 @@ if __FILE__ == $0
           delete_full_rows
           y = 0
           x = 4
-          curr_block = Block.new([:I, :J, :L, :O, :S, :Z,:T].sample, 0)
+          curr_block = next_block
+          next_block = Block.new([:I, :J, :L, :O, :S, :Z,:T].sample, 0)
+          render_next_block(win, next_block)
         end
         start_cycle = now
       end

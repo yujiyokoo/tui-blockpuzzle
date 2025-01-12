@@ -137,7 +137,9 @@ if __FILE__ == $0
     win = Curses::Window.new(0, 0, 1, 2)
     x = 4
     y = 0
-    wait = 0.2
+    wait = 0.8
+    block_count = 0
+    blocks_per_level = 15
     start_cycle = Process.clock_gettime(Process::CLOCK_MONOTONIC)
     curr_block = Block.new([:I, :J, :L, :O, :S, :Z,:T].sample, 0)
     loop do
@@ -182,6 +184,8 @@ if __FILE__ == $0
         else
           # $log.puts("curr_block, x, y: #{curr_block}, #{x}, #{y}")
           add_to_board(curr_block, x, y)
+          block_count += 1
+          wait = [wait - 0.1, 0.05].max if block_count % blocks_per_level == 0
           delete_full_rows
           y = 0
           x = 4

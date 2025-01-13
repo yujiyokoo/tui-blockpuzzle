@@ -189,7 +189,7 @@ if __FILE__ == $0
         win << ("##" * 12)
 
       win.setpos(HEIGHT+3, 4)
-        win << ("Score #{$score}")
+        win << ("Score #{$score * 100}")
 
       str = STDIN.read_nonblock(1, exception: false)
       case str
@@ -221,16 +221,16 @@ if __FILE__ == $0
           next_block = Block.new([:I, :J, :L, :O, :S, :Z,:T].sample, 0)
           render_next_block(win, next_block)
           unless can_move_to?(curr_block, x, y)
-            win.setpos(8, 2)
-            win << "                   "
-            win.setpos(9, 2)
-            win << "     GAME OVER     "
-            win.setpos(10, 2)
-            win << "                   "
+            win.setpos(8, 0)
+            win << "                        "
+            win.setpos(9, 0)
+            win << "       GAME OVER        "
+            win.setpos(10, 0)
+            win << "                        "
             win.setpos(11, 0)
             win << "   PRESS ENTER TO EXIT  "
-            win.setpos(12, 2)
-            win << "                   "
+            win.setpos(12, 0)
+            win << "                        "
             loop {
               c = win.getch
               break if c == 10 || c == 13

@@ -1,6 +1,8 @@
 # tui-blockpuzzle
 Terminal UI block puzzle
 
+![screenshot](doc_images/screenshot.png)
+
 ## Running
 
 ```
